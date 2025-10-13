@@ -1,3 +1,3 @@
-from .user_exceptions import UserNotFoundError, UserAlreadyExistsError
+from .user_exceptions import UserAlreadyExistsError, UserNotFoundError
 
 __all__ = ["UserNotFoundError", "UserAlreadyExistsError"]

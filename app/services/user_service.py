@@ -2,14 +2,15 @@
 User service implementation demonstrating business logic layer
 and following SOLID principles
 """
+
 import logging
 from typing import List, Tuple
 from uuid import UUID
 
+from app.exceptions.user_exceptions import UserNotFoundError
 from app.models.user import User, UserCreate, UserUpdate
 from app.repositories.base import BaseRepository
 from app.services.base import BaseService
-from app.exceptions.user_exceptions import UserNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,9 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 		logger.info(f"User retrieved successfully: {user_id}")
 		return user
 
-	async def get_all(self, skip: int = 0, limit: int = 10) -> Tuple[List[User], int]:
+	async def get_all(
+		self, skip: int = 0, limit: int = 10
+	) -> Tuple[List[User], int]:
 		"""
 		Get all users with pagination and business logic
 
@@ -85,18 +88,21 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 		Returns:
 			Tuple of (users list, total count)
 		"""
-		logger.info(f"Retrieving users with pagination (skip: {skip}, limit: {limit})")
+		logger.info(
+			f"Retrieving users with pagination (skip: {skip}, limit: {limit})"
+		)
 
 		# Business logic: Validate pagination parameters
-		if skip < 0:
-			skip = 0
-		if limit <= 0 or limit > 100: # Max limit of 100
+		skip = max(skip, 0)
+		if limit <= 0 or limit > 100:  # Max limit of 100
 			limit = 10
 
 		users = await self._user_repository.get_all(skip, limit)
 		total_count = await self._user_repository.count()
 
-		logger.info(f"Retrieving {len(users)} users out of {total_count} total")
+		logger.info(
+			f"Retrieving {len(users)} users out of {total_count} total"
+		)
 		return users, total_count
 
 	async def update(self, user_id: UUID, user_data: UserUpdate) -> User:
@@ -116,7 +122,9 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 		logger.info(f"Updating user with ID: {user_id}")
 
 		# Business logic: Ensure user exists first
-		await self.get_by_id(user_id) # This will raise UserNotFoundError if not found
+		await self.get_by_id(
+			user_id
+		)  # This will raise UserNotFoundError if not found
 
 		# Additional business logic validation could be added here
 
@@ -143,7 +151,9 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 		logger.info(f"Deleting user with ID: {user_id}")
 
 		# Business logic: Ensure user exists first
-		await self.get_by_id(user_id) # This will raise UserNotFoundError if not found
+		await self.get_by_id(
+			user_id
+		)  # This will raise UserNotFoundError if not found
 
 		# Additional business logic could be added here
 		# For example: checking if user has related data that needs cleanup

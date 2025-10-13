@@ -2,13 +2,14 @@
 Base service demonstration Interface Segregation Principle (ISP)
 and Open/Closed Principles (OCP)
 """
+
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Optional, List
+from typing import Generic, List, TypeVar
 from uuid import UUID
 
-T = TypeVar('T')
-CreateT = TypeVar('CreateT')
-UpdateT = TypeVar('UpdateT')
+T = TypeVar("T")
+CreateT = TypeVar("CreateT")
+UpdateT = TypeVar("UpdateT")
 
 
 class BaseService(Generic[T, CreateT, UpdateT], ABC):
@@ -30,7 +31,9 @@ class BaseService(Generic[T, CreateT, UpdateT], ABC):
 		pass
 
 	@abstractmethod
-	async def get_all(self, skip: int = 0, limit: int = 10) -> tuple[List[T], int]:
+	async def get_all(
+		self, skip: int = 0, limit: int = 10
+	) -> tuple[List[T], int]:
 		"""Get all entities with pagination and total count"""
 		pass
 

@@ -2,14 +2,17 @@
 User repository implementation demonstrating Liskov Substitution Principle (LSP)
 and Dependency Inversion Principle (DIP)
 """
+
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 from uuid import UUID
 
+from app.exceptions.user_exceptions import (
+	UserAlreadyExistsError,
+)
 from app.models.user import User, UserCreate, UserUpdate
 from app.repositories.base import BaseRepository
-from app.exceptions.user_exceptions import UserNotFoundError, UserAlreadyExistsError
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +47,9 @@ class UserRepository(BaseRepository[User]):
 		# Check if user with email already exists
 		existing_user = await self._get_by_email(user_data.email)
 		if existing_user:
-			raise UserAlreadyExistsError(f"User with email {user_data.email} already exists")
+			raise UserAlreadyExistsError(
+				f"User with email {user_data.email} already exists"
+			)
 
 		user = User(
 			name=user_data.name,
@@ -84,11 +89,15 @@ class UserRepository(BaseRepository[User]):
 			List of users
 		"""
 		users = list(self._users.values())
-		paginated_users = users[skip:skip + limit]
-		logger.info(f"Retrieved {len(paginated_users)} users (skip: {skip}, limit: {limit})")
+		paginated_users = users[skip : skip + limit]
+		logger.info(
+			f"Retrieved {len(paginated_users)} users (skip: {skip}, limit: {limit})"
+		)
 		return paginated_users
 
-	async def update(self, user_id: UUID, user_data: UserUpdate) -> Optional[User]:
+	async def update(
+		self, user_id: UUID, user_data: UserUpdate
+	) -> Optional[User]:
 		"""
 		Update user
 
@@ -113,7 +122,9 @@ class UserRepository(BaseRepository[User]):
 		if "email" in updated_data and updated_data["email"] != user.email:
 			existing_user = await self._get_by_email(updated_data["email"])
 			if existing_user and existing_user.id != user_id:
-				raise UserAlreadyExistsError(f"User with email {updated_data['email']} already exists")
+				raise UserAlreadyExistsError(
+					f"User with email {updated_data['email']} already exists"
+				)
 
 		# Update fields
 		for field, value in updated_data.items():

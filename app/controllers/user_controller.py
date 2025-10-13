@@ -2,6 +2,7 @@
 User controller demonstrating Single Responsibility Principle (SRP)
 and Dependency Inversion Principle (DIP)
 """
+
 import logging
 from math import ceil
 from typing import Annotated
@@ -10,11 +11,18 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
-from app.models.user import UserCreate, UserUpdate, UserResponse, UserListResponse
-from app.services.base import BaseService
-from app.models.user import User
-from app.exceptions.user_exceptions import UserNotFoundError, UserAlreadyExistsError
 from app.dependencies.container import Container
+from app.exceptions.user_exceptions import (
+	UserAlreadyExistsError,
+	UserNotFoundError,
+)
+from app.models.user import (
+	UserCreate,
+	UserListResponse,
+	UserResponse,
+	UserUpdate,
+)
+from app.services.base import BaseService
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +56,7 @@ class UserController:
 			status_code=status.HTTP_201_CREATED,
 			response_model=UserResponse,
 			summary="Create a new user",
-			description="Create a new user with name and email"
+			description="Create a new user with name and email",
 		)
 
 		self.router.add_api_route(
@@ -57,7 +65,7 @@ class UserController:
 			methods=["GET"],
 			response_model=UserResponse,
 			summary="Get user by ID",
-			description="Retrieve a user by their unique identifier"
+			description="Retrieve a user by their unique identifier",
 		)
 
 		self.router.add_api_route(
@@ -66,7 +74,7 @@ class UserController:
 			methods=["GET"],
 			response_model=UserListResponse,
 			summary="Get all users",
-			description="Retrieve all users with pagination support"
+			description="Retrieve all users with pagination support",
 		)
 
 		self.router.add_api_route(
@@ -75,7 +83,7 @@ class UserController:
 			methods=["PUT"],
 			response_model=UserResponse,
 			summary="Update user",
-			description="Update an existing user's information"
+			description="Update an existing user's information",
 		)
 
 		self.router.add_api_route(
@@ -84,13 +92,15 @@ class UserController:
 			methods=["DELETE"],
 			status_code=status.HTTP_204_NO_CONTENT,
 			summary="Delete user",
-			description="Delete a user by their unique identifier"
+			description="Delete a user by their unique identifier",
 		)
 
 	async def create_user(
 		self,
 		user_data: UserCreate,
-		user_service: Annotated[BaseService, Depends(lambda: self._container.user_service())]
+		user_service: Annotated[
+			BaseService, Depends(lambda: self._container.user_service())
+		],
 	) -> UserResponse:
 		"""
 		Create a new user
@@ -112,20 +122,21 @@ class UserController:
 		except UserAlreadyExistsError as e:
 			logger.warning(f"User creation failed: {str(e)}")
 			raise HTTPException(
-				status_code=status.HTTP_409_CONFLICT,
-				detail=str(e)
+				status_code=status.HTTP_409_CONFLICT, detail=str(e)
 			)
 		except Exception as e:
 			logger.error(f"Unexpected error creating user: {str(e)}")
 			raise HTTPException(
 				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-				detail="Internal server error"
+				detail="Internal server error",
 			)
 
 	async def get_user(
 		self,
 		user_id: UUID,
-		user_service: Annotated[BaseService, Depends(lambda: self._container.user_service())]
+		user_service: Annotated[
+			BaseService, Depends(lambda: self._container.user_service())
+		],
 	) -> UserResponse:
 		"""
 		Get user by ID
@@ -147,21 +158,24 @@ class UserController:
 		except UserNotFoundError as e:
 			logger.warning(f"User not found: {str(e)}")
 			raise HTTPException(
-				status_code=status.HTTP_404_NOT_FOUND,
-				detail=str(e)
+				status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
 			)
 		except Exception as e:
 			logger.error(f"Unexpected error getting user: {str(e)}")
 			raise HTTPException(
 				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-				detail="Internal server error"
+				detail="Internal server error",
 			)
 
 	async def get_users(
 		self,
 		page: Annotated[int, Query(ge=1, description="Page number")] = 1,
-		per_page: Annotated[int, Query(ge=1, le=100, description="Items per page")] = 10,
-		user_service: Annotated[BaseService, Depends(lambda: self._container.user_service())] = None
+		per_page: Annotated[
+			int, Query(ge=1, le=100, description="Items per page")
+		] = 10,
+		user_service: Annotated[
+			BaseService, Depends(lambda: self._container.user_service())
+		] = None,
 	) -> UserListResponse:
 		"""
 		Get all users with pagination
@@ -176,30 +190,36 @@ class UserController:
 		"""
 		try:
 			skip = (page - 1) * per_page
-			logger.info(f"Getting users via API: page={page}, per_page={per_page}")
+			logger.info(
+				f"Getting users via API: page={page}, per_page={per_page}"
+			)
 
 			users, total_count = await user_service.get_all(skip, per_page)
-			total_pages = ceil(total_count / per_page) if total_count > 0 else 1
+			total_pages = (
+				ceil(total_count / per_page) if total_count > 0 else 1
+			)
 
 			return UserListResponse(
 				users=[UserResponse.model_validate(user) for user in users],
 				total=total_count,
 				page=page,
 				per_page=per_page,
-				total_pages=total_pages
+				total_pages=total_pages,
 			)
 		except Exception as e:
 			logger.error(f"Unexpected error getting users: {str(e)}")
 			raise HTTPException(
 				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-				detail="Internal server error"
+				detail="Internal server error",
 			)
 
 	async def update_user(
 		self,
 		user_id: UUID,
 		user_data: UserUpdate,
-		user_service: Annotated[BaseService, Depends[lambda: self._container.user_service()]]
+		user_service: Annotated[
+			BaseService, Depends[lambda: self._container.user_service()]
+		],
 	) -> UserResponse:
 		"""
 		Update user
@@ -222,26 +242,26 @@ class UserController:
 		except UserNotFoundError as e:
 			logger.warning(f"User found for update: {str(e)}")
 			raise HTTPException(
-				status_code=status.HTTP_404_NOT_FOUND,
-				detail=str(e)
+				status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
 			)
 		except UserAlreadyExistsError as e:
 			logger.warning(f"User update failed: {str(e)}")
 			raise HTTPException(
-				status_code=status.HTTP_409_CONFLICT,
-				detail=str(e)
+				status_code=status.HTTP_409_CONFLICT, detail=str(e)
 			)
 		except Exception as e:
 			logger.error(f"Unexpected error updating user: {str(e)}")
 			raise HTTPException(
 				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-				detail="Internal server error"
+				detail="Internal server error",
 			)
 
 	async def delete_user(
 		self,
 		user_id: UUID,
-		user_service: Annotated[BaseService, Depends(lambda: self._container.user_service())]
+		user_service: Annotated[
+			BaseService, Depends(lambda: self._container.user_service())
+		],
 	) -> JSONResponse:
 		"""
 		Delete user
@@ -259,16 +279,17 @@ class UserController:
 		try:
 			logger.info(f"Deleting user via API: {user_id}")
 			await user_service.delete(user_id)
-			return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
+			return JSONResponse(
+				status_code=status.HTTP_204_NO_CONTENT, content=None
+			)
 		except UserNotFoundError as e:
 			logger.warning(f"User not found for deletion: {str(e)}")
 			raise HTTPException(
-				status_code=status.HTTP_404_NOT_FOUND,
-				detail=str(e)
+				status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
 			)
 		except Exception as e:
 			logger.error(f"Unexpected error deleting user: {str(e)}")
 			raise HTTPException(
 				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-				detail="Internal server error"
+				detail="Internal server error",
 			)

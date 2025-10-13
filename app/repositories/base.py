@@ -2,11 +2,12 @@
 Base repository demonstrating Interface Segregation Principle (ISP)
 and Open/Closed Principle (OCP)
 """
+
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Optional, List
+from typing import Generic, List, Optional, TypeVar
 from uuid import UUID
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class BaseRepository(Generic[T], ABC):

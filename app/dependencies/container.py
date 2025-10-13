@@ -1,6 +1,7 @@
 """
 Dependency injection container demonstrating Dependency Inversion Principle (DIP)
 """
+
 import logging
 from functools import lru_cache
 
@@ -48,5 +49,7 @@ class Container:
 		if self.user_service is None:
 			# Dependency injection: UserService depends ou UserRepository abstraction
 			self._user_service = UserService(self.user_repository())
-			logger.info("UserService instance crated with injected dependencies")
+			logger.info(
+				"UserService instance crated with injected dependencies"
+			)
 		return self._user_service
