@@ -8,7 +8,7 @@ from math import ceil
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
 
 from app.dependencies.container import Container
@@ -46,6 +46,10 @@ class UserController:
 		self._container = container
 		self._setup_routes()
 		logger.info("UserController initialized")
+
+	def _get_user_service(self) -> BaseService:
+		"""Get user service from container"""
+		return self._container.user_service()
 
 	def _setup_routes(self):
 		"""Setup API routes"""
@@ -98,9 +102,7 @@ class UserController:
 	async def create_user(
 		self,
 		user_data: UserCreate,
-		user_service: Annotated[
-			BaseService, Depends(lambda: self._container.user_service())
-		],
+		user_service: Annotated[BaseService, Depends(lambda: None)] = None,
 	) -> UserResponse:
 		"""
 		Create a new user
@@ -115,8 +117,11 @@ class UserController:
 		Raises:
 			HTTPException: If user already exists or validation fails
 		"""
+		if user_service is None:
+			user_service = self._get_user_service()
+
 		try:
-			logger.info(f"Creating yser via API: {user_data.email}")
+			logger.info(f"Creating user via API: {user_data.email}")
 			user = await user_service.create(user_data)
 			return UserResponse.model_validate(user)
 		except UserAlreadyExistsError as e:
@@ -134,9 +139,7 @@ class UserController:
 	async def get_user(
 		self,
 		user_id: UUID,
-		user_service: Annotated[
-			BaseService, Depends(lambda: self._container.user_service())
-		],
+		user_service: Annotated[BaseService, Depends(lambda: None)] = None,
 	) -> UserResponse:
 		"""
 		Get user by ID
@@ -149,8 +152,11 @@ class UserController:
 			User response
 
 		Raises:
-			HttpException: If user is not found
+			HTTPException: If user is not found
 		"""
+		if user_service is None:
+			user_service = self._get_user_service()
+
 		try:
 			logger.info(f"Getting user via API: {user_id}")
 			user = await user_service.get_by_id(user_id)
@@ -173,9 +179,7 @@ class UserController:
 		per_page: Annotated[
 			int, Query(ge=1, le=100, description="Items per page")
 		] = 10,
-		user_service: Annotated[
-			BaseService, Depends(lambda: self._container.user_service())
-		] = None,
+		user_service: Annotated[BaseService, Depends(lambda: None)] = None,
 	) -> UserListResponse:
 		"""
 		Get all users with pagination
@@ -188,6 +192,9 @@ class UserController:
 		Returns:
 			Paginated user list response
 		"""
+		if user_service is None:
+			user_service = self._get_user_service()
+
 		try:
 			skip = (page - 1) * per_page
 			logger.info(
@@ -217,9 +224,7 @@ class UserController:
 		self,
 		user_id: UUID,
 		user_data: UserUpdate,
-		user_service: Annotated[
-			BaseService, Depends[lambda: self._container.user_service()]
-		],
+		user_service: Annotated[BaseService, Depends(lambda: None)] = None,
 	) -> UserResponse:
 		"""
 		Update user
@@ -233,14 +238,17 @@ class UserController:
 			Updated user response
 
 		Raises:
-			HttpException: If user is not found or email already exists
+			HTTPException: If user is not found or email already exists
 		"""
+		if user_service is None:
+			user_service = self._get_user_service()
+
 		try:
 			logger.info(f"Updating user via API: {user_id}")
 			user = await user_service.update(user_id, user_data)
 			return UserResponse.model_validate(user)
 		except UserNotFoundError as e:
-			logger.warning(f"User found for update: {str(e)}")
+			logger.warning(f"User not found for update: {str(e)}")
 			raise HTTPException(
 				status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
 			)
@@ -259,9 +267,7 @@ class UserController:
 	async def delete_user(
 		self,
 		user_id: UUID,
-		user_service: Annotated[
-			BaseService, Depends(lambda: self._container.user_service())
-		],
+		user_service: Annotated[BaseService, Depends(lambda: None)] = None,
 	) -> JSONResponse:
 		"""
 		Delete user
@@ -274,14 +280,15 @@ class UserController:
 			Empty response with 204 status
 
 		Raises:
-			HttpException: If user is not found
+			HTTPException: If user is not found
 		"""
+		if user_service is None:
+			user_service = self._get_user_service()
+
 		try:
 			logger.info(f"Deleting user via API: {user_id}")
 			await user_service.delete(user_id)
-			return JSONResponse(
-				status_code=status.HTTP_204_NO_CONTENT, content=None
-			)
+			return Response(status_code=status.HTTP_204_NO_CONTENT)
 		except UserNotFoundError as e:
 			logger.warning(f"User not found for deletion: {str(e)}")
 			raise HTTPException(
