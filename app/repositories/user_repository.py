@@ -5,12 +5,16 @@ and Dependency Inversion Principle (DIP)
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List, Optional
 from uuid import UUID
+
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions.user_exceptions import (
 	UserAlreadyExistsError,
 )
+from app.models.db_models import UserDB
 from app.models.user import User, UserCreate, UserUpdate
 from app.repositories.base import BaseRepository
 
@@ -19,17 +23,22 @@ logger = logging.getLogger(__name__)
 
 class UserRepository(BaseRepository[User]):
 	"""
-	In-memory user repository implementation
+	SQLAlchemy user repository implementation
 
 	LSP: Can be substituted for BaseRepository without breaking functionality
 	DIP: Depends on abstraction (BaseRepository) not concrete implementation
 	SRP: Only responsible for user data persistence
 	"""
 
-	def __init__(self):
-		# In-memory storage (can be easily replaced with database implementation)
-		self._users: Dict[UUID, User] = {}
-		logger.info("UserRepository initialized with in-memory storage")
+	def __init__(self, session: AsyncSession):
+		"""
+		Initialize repository with database session
+
+		Args:
+			session: SQLAlchemy async session
+		"""
+		self.session = session
+		logger.info("UserRepository initialized with SQLAlchemy session")
 
 	async def create(self, user_data: UserCreate) -> User:
 		"""
@@ -51,14 +60,20 @@ class UserRepository(BaseRepository[User]):
 				f"User with email {user_data.email} already exists"
 			)
 
-		user = User(
+		# Create database model
+		db_user = UserDB(
 			name=user_data.name,
 			email=user_data.email,
 		)
 
-		self._users[user.id] = user
-		logger.info(f"User created with ID: {user.id}")
-		return user
+		self.session.add(db_user)
+		await self.session.flush()
+		await self.session.refresh(db_user)
+
+		logger.info(f"User created with ID: {db_user.id}")
+
+		# Convert to Pydantic model
+		return self._to_pydantic(db_user)
 
 	async def get_by_id(self, user_id: UUID) -> Optional[User]:
 		"""
@@ -70,12 +85,16 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 			User if found, None otherwise
 		"""
-		user = self._users.get(user_id)
-		if user:
+		stmt = select(UserDB).where(UserDB.id == str(user_id))
+		result = await self.session.execute(stmt)
+		db_user = result.scalar_one_or_none()
+
+		if db_user:
 			logger.info(f"User found with ID: {user_id}")
+			return self._to_pydantic(db_user)
 		else:
 			logger.warning(f"User not found with ID: {user_id}")
-		return user
+			return None
 
 	async def get_all(self, skip: int = 0, limit: int = 10) -> List[User]:
 		"""
@@ -88,12 +107,15 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 			List of users
 		"""
-		users = list(self._users.values())
-		paginated_users = users[skip : skip + limit]
+		stmt = select(UserDB).offset(skip).limit(limit)
+		result = await self.session.execute(stmt)
+		db_users = result.scalars().all()
+
 		logger.info(
-			f"Retrieved {len(paginated_users)} users (skip: {skip}, limit: {limit})"
+			f"Retrieved {len(db_users)} users (skip: {skip}, limit: {limit})"
 		)
-		return paginated_users
+
+		return [self._to_pydantic(db_user) for db_user in db_users]
 
 	async def update(
 		self, user_id: UUID, user_data: UserUpdate
@@ -111,15 +133,18 @@ class UserRepository(BaseRepository[User]):
 		Raises:
 			UserAlreadyExistsError: If email is being changed to an existing email
 		"""
-		user = self._users.get(user_id)
-		if not user:
+		stmt = select(UserDB).where(UserDB.id == str(user_id))
+		result = await self.session.execute(stmt)
+		db_user = result.scalar_one_or_none()
+
+		if not db_user:
 			logger.warning(f"User not found for update with ID: {user_id}")
 			return None
 
 		updated_data = user_data.model_dump(exclude_unset=True)
 
 		# Check email uniqueness if email is being updated
-		if "email" in updated_data and updated_data["email"] != user.email:
+		if "email" in updated_data and updated_data["email"] != db_user.email:
 			existing_user = await self._get_by_email(updated_data["email"])
 			if existing_user and existing_user.id != user_id:
 				raise UserAlreadyExistsError(
@@ -128,11 +153,14 @@ class UserRepository(BaseRepository[User]):
 
 		# Update fields
 		for field, value in updated_data.items():
-			setattr(user, field, value)
+			setattr(db_user, field, value)
 
-		user.updated_at = datetime.utcnow()
+		db_user.updated_at = datetime.utcnow()
+		await self.session.flush()
+		await self.session.refresh(db_user)
+
 		logger.info(f"User updated with ID: {user_id}")
-		return user
+		return self._to_pydantic(db_user)
 
 	async def delete(self, user_id: UUID) -> bool:
 		"""
@@ -144,8 +172,13 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 			True if user was deleted, False if not found
 		"""
-		if user_id in self._users:
-			del self._users[user_id]
+		stmt = select(UserDB).where(UserDB.id == str(user_id))
+		result = await self.session.execute(stmt)
+		db_user = result.scalar_one_or_none()
+
+		if db_user:
+			await self.session.delete(db_user)
+			await self.session.flush()
 			logger.info(f"User deleted with ID: {user_id}")
 			return True
 
@@ -159,7 +192,10 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 			Total number of users
 		"""
-		count = len(self._users)
+		stmt = select(func.count()).select_from(UserDB)
+		result = await self.session.execute(stmt)
+		count = result.scalar_one()
+
 		logger.info(f"Total users count: {count}")
 		return count
 
@@ -173,7 +209,28 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 			User if found, None otherwise
 		"""
-		for user in self._users.values():
-			if user.email == email:
-				return user
+		stmt = select(UserDB).where(UserDB.email == email)
+		result = await self.session.execute(stmt)
+		db_user = result.scalar_one_or_none()
+
+		if db_user:
+			return self._to_pydantic(db_user)
 		return None
+
+	def _to_pydantic(self, db_user: UserDB) -> User:
+		"""
+		Convert SQLAlchemy model to Pydantic model
+
+		Args:
+			db_user: SQLAlchemy UserDB instance
+
+		Returns:
+			Pydantic User instance
+		"""
+		return User(
+			id=UUID(db_user.id),
+			name=db_user.name,
+			email=db_user.email,
+			created_at=db_user.created_at,
+			updated_at=db_user.updated_at,
+		)

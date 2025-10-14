@@ -4,6 +4,8 @@ Dependency injection container demonstrating Dependency Inversion Principle (DIP
 
 import logging
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.repositories.user_repository import UserRepository
 from app.services.user_service import UserService
 
@@ -18,35 +20,30 @@ class Container:
 	This container manages the creation and injection of dependencies
 	"""
 
-	def __init__(self):
-		"""Initialize the container"""
-		self._user_repository = None
-		self._user_service = None
-		logger.info("Dependency container initialized")
-
-	def user_repository(self) -> UserRepository:
+	def user_repository(self, session: AsyncSession) -> UserRepository:
 		"""
-		Get user repository instance (singleton)
+		Get user repository instance
+
+		Args:
+			session: Database session
 
 		Returns:
 			UserRepository instance
 		"""
-		if self._user_repository is None:
-			self._user_repository = UserRepository()
-			logger.info("UserRepository instance created")
-		return self._user_repository
+		logger.info("Creating UserRepository instance with database session")
+		return UserRepository(session)
 
-	def user_service(self) -> UserService:
+	def user_service(self, session: AsyncSession) -> UserService:
 		"""
-		Get user service instance (singleton)
+		Get user service instance
+
+		Args:
+			session: Database session
 
 		Returns:
 			UserService instance with injected dependencies
 		"""
-		if self._user_service is None:
-			# Dependency injection: UserService depends ou UserRepository abstraction
-			self._user_service = UserService(self.user_repository())
-			logger.info(
-				"UserService instance crated with injected dependencies"
-			)
-		return self._user_service
+		# Dependency injection: UserService depends on UserRepository abstraction
+		user_repository = self.user_repository(session)
+		logger.info("Creating UserService instance with injected dependencies")
+		return UserService(user_repository)

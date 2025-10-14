@@ -20,6 +20,16 @@ Content-Type: application/json
 GET {{baseUrl}}/users
 
 ###
+# Get All Users with pagination
+# @name getUsersWithPagination
+GET {{baseUrl}}/users/?page=2
+
+###
+# Get All Users with items per page (Maximum: 100)
+# @name getUsersWithItemsPerPage
+GET {{baseUrl}}/users/?per_page=5
+
+###
 @userId = {{createUser.response.body.id}}
 
 ###
