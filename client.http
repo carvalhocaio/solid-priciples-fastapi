@@ -1,0 +1,40 @@
+# Variables
+@baseUrl = http://localhost:8000/api/v1
+
+###
+
+# Create New User
+# @name createUser
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "clancy",
+  "email": "clancy@example.com"
+}
+
+###
+
+# Get All Users
+# @name getUsers
+GET {{baseUrl}}/users
+
+###
+@userId = {{createUser.response.body.id}}
+
+###
+# @name getUser
+GET {{baseUrl}}/users/{{userId}}
+
+###
+# @name putUser
+PUT {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+
+{
+	"email": "clancy@dema.com"
+}
+
+###
+# @name deleteUser
+DELETE {{baseUrl}}/users/{{userId}}
