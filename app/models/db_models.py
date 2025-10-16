@@ -4,7 +4,7 @@ Demonstrating Single Responsibility Principle (SRP)
 Each model is responsible for database representation only
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy import DateTime, String
@@ -47,14 +47,14 @@ class UserDB(Base):
 	created_at: Mapped[datetime] = mapped_column(
 		DateTime,
 		nullable=False,
-		default=datetime.utcnow,
+		default=lambda: datetime.now(UTC),
 		doc="Creation timestamp",
 	)
 	updated_at: Mapped[datetime] = mapped_column(
 		DateTime,
 		nullable=False,
-		default=datetime.utcnow,
-		onupdate=datetime.utcnow,
+		default=lambda: datetime.now(UTC),
+		onupdate=lambda: datetime.now(UTC),
 		doc="Last update timestamp",
 	)
 

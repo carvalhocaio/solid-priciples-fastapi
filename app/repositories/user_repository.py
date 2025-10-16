@@ -4,7 +4,7 @@ and Dependency Inversion Principle (DIP)
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import List, Optional
 from uuid import UUID
 
@@ -155,7 +155,7 @@ class UserRepository(BaseRepository[User]):
 		for field, value in updated_data.items():
 			setattr(db_user, field, value)
 
-		db_user.updated_at = datetime.utcnow()
+		db_user.updated_at = datetime.now(UTC)
 		await self.session.flush()
 		await self.session.refresh(db_user)
 

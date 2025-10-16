@@ -2,7 +2,7 @@
 Factory Boy factories for test data generation
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import factory
@@ -21,8 +21,8 @@ class UserDBFactory(factory.Factory):
 	id = LazyFunction(lambda: str(uuid4()))
 	name = factory.Faker("name")
 	email = factory.Faker("email")
-	created_at = LazyFunction(datetime.utcnow)
-	updated_at = LazyFunction(datetime.utcnow)
+	created_at = LazyFunction(lambda: datetime.now(UTC))
+	updated_at = LazyFunction(lambda: datetime.now(UTC))
 
 
 class UserFactory(factory.Factory):
@@ -34,8 +34,8 @@ class UserFactory(factory.Factory):
 	id = LazyFunction(uuid4)
 	name = factory.Faker("name")
 	email = factory.Faker("email")
-	created_at = LazyFunction(datetime.utcnow)
-	updated_at = LazyFunction(datetime.utcnow)
+	created_at = LazyFunction(lambda: datetime.now(UTC))
+	updated_at = LazyFunction(lambda: datetime.now(UTC))
 
 
 class UserCreateFactory(factory.Factory):

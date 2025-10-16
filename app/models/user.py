@@ -3,11 +3,11 @@ User models demonstrating Single Responsibility Principle (SRP)
 Eah model has a single, well-defined purpose
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
@@ -50,14 +50,13 @@ class User(UserBase):
 		default_factory=uuid4, description="Unique user identifier"
 	)
 	created_at: datetime = Field(
-		default_factory=datetime.utcnow, description="Creation timestamp"
+		default_factory=lambda: datetime.now(UTC), description="Creation timestamp"
 	)
 	updated_at: datetime = Field(
-		default_factory=datetime.utcnow, description="Last update timestamp"
+		default_factory=lambda: datetime.now(UTC), description="Last update timestamp"
 	)
 
-	class Config:
-		from_attributes = True
+	model_config = ConfigDict(from_attributes=True)
 
 
 class UserResponse(UserBase):
@@ -70,8 +69,7 @@ class UserResponse(UserBase):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	model_config = ConfigDict(from_attributes=True)
 
 
 class UserListResponse(BaseModel):

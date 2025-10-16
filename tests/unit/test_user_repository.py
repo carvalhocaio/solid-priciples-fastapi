@@ -186,7 +186,7 @@ class TestUserRepositoryUpdate:
 		result = await repository.update(non_existent_id, update_data)
 
 		# Assert
-		assert result in None
+		assert result is None
 
 
 @pytest.mark.unit
