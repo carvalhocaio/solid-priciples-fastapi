@@ -6,7 +6,7 @@ import logging
 
 from faker import Faker
 
-from app.database import init_db, close_db, AsyncSessionLocal
+from app.database import AsyncSessionLocal, close_db, init_db
 from app.dependencies.container import Container
 from app.models.user import UserCreate
 

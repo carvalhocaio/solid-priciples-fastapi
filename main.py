@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.controllers.user_controller import UserController
-from app.database import init_db, close_db
+from app.database import close_db, init_db
 from app.dependencies.container import Container
 
 

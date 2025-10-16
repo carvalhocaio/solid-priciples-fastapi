@@ -15,3 +15,8 @@ wheels/
 
 # Cache
 .ruff_cache/
+
+# Tests
+.pytest_cache/
+*coverage*
+htmlcov/

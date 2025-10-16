@@ -6,8 +6,6 @@ Following AAA (Arrange-Act-Assert) pattern
 import pytest
 from httpx import AsyncClient
 
-from tests.factories import create_user_data
-
 
 @pytest.mark.e2e
 class TestUserEndpointsCreate:

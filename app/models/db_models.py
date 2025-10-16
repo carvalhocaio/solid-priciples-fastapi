@@ -7,7 +7,7 @@ Each model is responsible for database representation only
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import String, DateTime, Uuid
+from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
