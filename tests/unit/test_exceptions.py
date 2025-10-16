@@ -2,6 +2,7 @@
 Unit tests for custom exceptions
 Following AAA (Arrange-Act-Assert) pattern
 """
+
 import pytest
 
 from app.exceptions.user_exceptions import (

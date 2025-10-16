@@ -66,27 +66,15 @@ class TestGetDb:
 			db_generator = get_db()
 			session = await db_generator.__anext__()
 
-			assert session == mock_session
+		assert session == mock_session
 
-			# Simulate error during commit
-			with pytest.raises(Exception) as exc_info:
-				try:
-					await db_generator.__anext__()
-				except StopAsyncIteration:
-					pass
+		# Simulate error during commit - should raise the exception
+		with pytest.raises(Exception, match="DB Error"):
+			await db_generator.__anext__()
 
-			# The exception should be raised in the finally block
-			# Let's trigger it by sending an exception
-			try:
-				await db_generator.athrow(Exception("Test error"))
-			except Exception:
-				pass
-
-			# Assert - rollback was called
-			mock_session.rollback.assert_called()
-			mock_session.close.assert_called()
-
-
+		# Assert - rollback and close were called
+		mock_session.rollback.assert_called_once()
+		mock_session.close.assert_called_once()
 @pytest.mark.unit
 class TestInitDb:
 	"""Test init_db function."""

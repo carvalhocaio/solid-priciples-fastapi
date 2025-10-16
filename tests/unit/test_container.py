@@ -2,6 +2,7 @@
 Unit tests for dependency injection container
 Following AAA (Arrange-Act-Assert) pattern
 """
+
 import pytest
 
 from app.dependencies.container import Container

@@ -2,8 +2,9 @@
 Helper functions for tests
 Utilities to make testing easier and more consistent
 """
+
 import asyncio
-from typing import Any, Callable, List
+from typing import Callable, List
 from uuid import UUID
 
 from httpx import AsyncClient
@@ -37,7 +38,9 @@ async def create_multiple_users(
 	return users
 
 
-async def cleanup_users(client: AsyncClient, user_ids: List[UUID | str]) -> None:
+async def cleanup_users(
+	client: AsyncClient, user_ids: List[UUID | str]
+) -> None:
 	"""
 	Helper to cleanup multiple users.
 
@@ -212,7 +215,9 @@ class TestDataBuilder:
 	def __init__(self):
 		self._users_data = []
 
-	def add_user(self, name: str = None, email: str = None) -> "TestDataBuilder":
+	def add_user(
+		self, name: str = None, email: str = None
+	) -> "TestDataBuilder":
 		"""Add a user to the builder."""
 		user_data = {
 			"name": name or f"User {len(self._users_data)}",
@@ -267,7 +272,9 @@ class AsyncTestTimer:
 
 
 # Performance test helpers
-def assert_performance(elapsed: float, max_time: float, operation: str = "Operation"):
+def assert_performance(
+	elapsed: float, max_time: float, operation: str = "Operation"
+):
 	"""
 	Assert that an operation completed within expected time.
 
@@ -276,9 +283,9 @@ def assert_performance(elapsed: float, max_time: float, operation: str = "Operat
 		max_time: Maximum allowed time
 		operation: Description of the operation
 	"""
-	assert (
-		elapsed <= max_time
-	), f"{operation} took {elapsed:.2f}s, expected <={max_time}s"
+	assert elapsed <= max_time, (
+		f"{operation} took {elapsed:.2f}s, expected <={max_time}s"
+	)
 
 
 # Comparison helpers
@@ -294,7 +301,8 @@ def dict_contains(superset: dict, subset: dict) -> bool:
 		True if superset contains subset
 	"""
 	return all(
-		key in superset and superset[key] == value for key, value in subset.items()
+		key in superset and superset[key] == value
+		for key, value in subset.items()
 	)
 
 
@@ -308,6 +316,6 @@ def assert_dict_contains(superset: dict, subset: dict) -> None:
 	"""
 	for key, value in subset.items():
 		assert key in superset, f"Key '{key}' not found in response"
-		assert (
-			superset[key] == value
-		), f"Expected {key}={value}, got {key}={superset[key]}"
+		assert superset[key] == value, (
+			f"Expected {key}={value}, got {key}={superset[key]}"
+		)

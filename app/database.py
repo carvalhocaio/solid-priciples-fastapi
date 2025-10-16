@@ -45,7 +45,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 	Yields:
 		AsyncSession: Database session
 
-	Following DIP: Controllers depend on this abstraction, not concrete database
+	Following DIP: Controllers depend on this abstraction,
+	not concrete database
 	"""
 	async with AsyncSessionLocal() as session:
 		try:

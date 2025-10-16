@@ -202,10 +202,10 @@ class TestUserRepositoryUpdate:
 		user1 = await repository.create(user1_data)
 
 		user2_data = create_user_data(email="user2@example.com")
-		user2 = await repository.create(user2_data)
+		await repository.create(user2_data)
 
-		from app.models.user import UserUpdate
 		from app.exceptions.user_exceptions import UserAlreadyExistsError
+		from app.models.user import UserUpdate
 
 		# Try to update user1's email to user2's email
 		update_data = UserUpdate(email="user2@example.com")

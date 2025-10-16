@@ -1,5 +1,6 @@
 """
-Dependency injection container demonstrating Dependency Inversion Principle (DIP)
+Dependency injection container demonstrating
+Dependency Inversion Principle (DIP)
 """
 
 import logging
@@ -43,7 +44,8 @@ class Container:
 		Returns:
 			UserService instance with injected dependencies
 		"""
-		# Dependency injection: UserService depends on UserRepository abstraction
+		# Dependency injection: UserService depends on
+		# UserRepository abstraction
 		user_repository = self.user_repository(session)
 		logger.info("Creating UserService instance with injected dependencies")
 		return UserService(user_repository)

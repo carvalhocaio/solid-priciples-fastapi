@@ -1,5 +1,6 @@
 """
-User repository implementation demonstrating Liskov Substitution Principle (LSP)
+User repository implementation demonstrating
+Liskov Substitution Principle (LSP)
 and Dependency Inversion Principle (DIP)
 """
 
@@ -131,7 +132,8 @@ class UserRepository(BaseRepository[User]):
 			Updated user if found, None otherwise
 
 		Raises:
-			UserAlreadyExistsError: If email is being changed to an existing email
+			UserAlreadyExistsError: If email is being changed to an
+				existing email
 		"""
 		stmt = select(UserDB).where(UserDB.id == str(user_id))
 		result = await self.session.execute(stmt)

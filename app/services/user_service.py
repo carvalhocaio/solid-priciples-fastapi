@@ -94,7 +94,8 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 
 		# Business logic: Validate pagination parameters
 		skip = max(skip, 0)
-		if limit <= 0 or limit > 100:  # Max limit of 100
+		max_limit = 100
+		if limit <= 0 or limit > max_limit:  # Max limit of 100
 			limit = 10
 
 		users = await self._user_repository.get_all(skip, limit)

@@ -24,7 +24,7 @@ def event_loop() -> Generator:
 	loop.close()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def test_db_engine():
 	"""Create a test database engine."""
 	# Use in-memory SQLite for tests
@@ -45,7 +45,7 @@ async def test_db_engine():
 	await engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def test_db_session(
 	test_db_engine,
 ) -> AsyncGenerator[AsyncSession, None]:
@@ -64,7 +64,7 @@ async def test_db_session(
 
 
 # Application fixtures
-@pytest.fixture(scope="function")
+@pytest.fixture
 def app_with_test_db(test_db_session):
 	"""Create FastAPI app with test database."""
 	app = create_app()
@@ -79,7 +79,7 @@ def app_with_test_db(test_db_session):
 	app.dependency_overrides.clear()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def client(app_with_test_db) -> AsyncGenerator[AsyncClient, None]:
 	"""Create async test client."""
 	async with AsyncClient(
@@ -89,20 +89,20 @@ async def client(app_with_test_db) -> AsyncGenerator[AsyncClient, None]:
 
 
 # Container fixtures
-@pytest.fixture(scope="function")
+@pytest.fixture
 def container():
 	"""Create dependency injection container."""
 	return Container()
 
 
 # Mock fixtures
-@pytest.fixture(scope="function")
+@pytest.fixture
 def mock_user_id():
 	"""Generate a mock user ID."""
 	return uuid4()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def mock_user_email():
 	"""Generate a mock user email."""
 	return f"test_{uuid4().hex[:8]}@example.com"

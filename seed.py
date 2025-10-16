@@ -1,6 +1,7 @@
 """
 Seed script to generate 21 users using Faker library
 """
+
 import asyncio
 import logging
 
@@ -59,12 +60,15 @@ async def seed_users(num_users: int = 21) -> None:
 					created_count += 1
 
 					logger.info(
-						f"[{i + 1}/{num_users}] User created: {user.name} ({user.email})"
+						f"[{i + 1}/{num_users}] User created: "
+						f"{user.name} ({user.email})"
 					)
 
 				except Exception as e:
 					failed_count += 1
-					logger.error(f"[{i + 1}/{num_users}] Failed to create user: {e}")
+					logger.error(
+						f"[{i + 1}/{num_users}] Failed to create user: {e}"
+					)
 
 			# Commit all changes
 			await session.commit()
@@ -76,7 +80,8 @@ async def seed_users(num_users: int = 21) -> None:
 			raise
 
 	logger.info(
-		f"Seed process completed! Created: {created_count}, Failed: {failed_count}"
+		f"Seed process completed! Created: {created_count}, "
+		f"Failed: {failed_count}"
 	)
 
 

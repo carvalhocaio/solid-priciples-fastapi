@@ -1,6 +1,7 @@
 """
 FastAPI CRUD API demonstrating SOLID principles
 """
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -29,9 +30,12 @@ def create_app() -> FastAPI:
 	"""
 	app = FastAPI(
 		title="FastAPI SOLID CRUD",
-		description="A FastAPI application demonstrating SOLID principles with User CRUD operations",
+		description=(
+			"A FastAPI application demonstrating SOLID principles "
+			"with User CRUD operations"
+		),
 		version="1.0.0",
-		lifespan=lifespan
+		lifespan=lifespan,
 	)
 
 	# Initialize dependency container
@@ -39,12 +43,16 @@ def create_app() -> FastAPI:
 
 	# Include routers with dependency injection
 	user_controller = UserController(container)
-	app.include_router(user_controller.router, prefix="/api/v1", tags=["users"])
+	app.include_router(
+		user_controller.router, prefix="/api/v1", tags=["users"]
+	)
 
 	return app
+
 
 app = create_app()
 
 if __name__ == "__main__":
 	import uvicorn
+
 	uvicorn.run(app, host="0.0.0.0", port=8000)

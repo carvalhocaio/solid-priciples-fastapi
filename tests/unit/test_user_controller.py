@@ -138,7 +138,9 @@ class TestUserControllerGet:
 		mock_session = MagicMock()
 
 		user_id = uuid4()
-		mock_service.get_by_id.side_effect = UserNotFoundError("User not found")
+		mock_service.get_by_id.side_effect = UserNotFoundError(
+			"User not found"
+		)
 		mock_container.user_service.return_value = mock_service
 
 		controller = UserController(mock_container)
@@ -195,7 +197,9 @@ class TestUserControllerGetAll:
 		controller = UserController(mock_container)
 
 		# Act
-		result = await controller.get_users(page=1, per_page=10, session=mock_session)
+		result = await controller.get_users(
+			page=1, per_page=10, session=mock_session
+		)
 
 		# Assert
 		assert len(result.users) == 3
@@ -254,7 +258,9 @@ class TestUserControllerUpdate:
 		update_data = UserUpdate(name="Updated Name")
 
 		# Act
-		result = await controller.update_user(user_id, update_data, mock_session)
+		result = await controller.update_user(
+			user_id, update_data, mock_session
+		)
 
 		# Assert
 		assert result.name == "Updated Name"

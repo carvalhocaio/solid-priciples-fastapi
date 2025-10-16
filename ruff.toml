@@ -5,6 +5,10 @@ exclude = [".venv"]
 
 [lint]
 select = ["I", "F", "E", "PL", "PT"]
+ignore = [
+	"PLR2004",  # Magic value used in comparison (common in tests)
+	"PLC0415",  # Import should be at top-level (sometimes needed in tests)
+]
 
 [format]
 quote-style = "double"

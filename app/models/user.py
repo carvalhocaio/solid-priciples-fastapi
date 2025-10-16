@@ -50,10 +50,12 @@ class User(UserBase):
 		default_factory=uuid4, description="Unique user identifier"
 	)
 	created_at: datetime = Field(
-		default_factory=lambda: datetime.now(UTC), description="Creation timestamp"
+		default_factory=lambda: datetime.now(UTC),
+		description="Creation timestamp",
 	)
 	updated_at: datetime = Field(
-		default_factory=lambda: datetime.now(UTC), description="Last update timestamp"
+		default_factory=lambda: datetime.now(UTC),
+		description="Last update timestamp",
 	)
 
 	model_config = ConfigDict(from_attributes=True)

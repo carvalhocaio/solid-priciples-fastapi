@@ -27,9 +27,7 @@ class TestUserEndpointsErrorHandling:
 		# Should either succeed or return proper error
 		assert response.status_code in [201, 500]
 
-	async def test_get_user_internal_error_handling(
-		self, client: AsyncClient
-	):
+	async def test_get_user_internal_error_handling(self, client: AsyncClient):
 		"""
 		GIVEN a user retrieval request
 		WHEN getting a user
