@@ -6,11 +6,59 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.21.0",
+    "factory-boy>=3.3.3",
     "faker>=37.11.0",
     "fastapi>=0.118.3",
+    "httpx>=0.28.1",
     "pydantic[email]>=2.12.0",
+    "pytest>=8.4.2",
     "python-multipart>=0.0.20",
     "ruff>=0.14.0",
     "sqlalchemy>=2.0.44",
     "uvicorn>=0.37.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "httpx>=0.26.0",
+    "factory-boy>=3.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/venv/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
 ]
