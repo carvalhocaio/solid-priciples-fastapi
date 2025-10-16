@@ -188,6 +188,60 @@ class TestUserRepositoryUpdate:
 		# Assert
 		assert result is None
 
+	async def test_update_user_duplicate_email(self, test_db_session):
+		"""
+		GIVEN two existing users
+		WHEN updating one user's email to match another
+		THEN UserAlreadyExistsError is raised
+		"""
+		# Arrange
+		repository = UserRepository(test_db_session)
+
+		# Create two users
+		user1_data = create_user_data(email="user1@example.com")
+		user1 = await repository.create(user1_data)
+
+		user2_data = create_user_data(email="user2@example.com")
+		user2 = await repository.create(user2_data)
+
+		from app.models.user import UserUpdate
+		from app.exceptions.user_exceptions import UserAlreadyExistsError
+
+		# Try to update user1's email to user2's email
+		update_data = UserUpdate(email="user2@example.com")
+
+		# Act & Assert
+		with pytest.raises(UserAlreadyExistsError):
+			await repository.update(user1.id, update_data)
+
+	async def test_update_user_email_to_new_unique_email(
+		self, test_db_session
+	):
+		"""
+		GIVEN an existing user
+		WHEN updating user's email to a new unique email
+		THEN user is updated successfully
+		"""
+		# Arrange
+		repository = UserRepository(test_db_session)
+
+		# Create a user
+		user_data = create_user_data(email="original@example.com")
+		user = await repository.create(user_data)
+
+		from app.models.user import UserUpdate
+
+		# Update to a new unique email
+		update_data = UserUpdate(email="newunique@example.com")
+
+		# Act
+		updated_user = await repository.update(user.id, update_data)
+
+		# Assert
+		assert updated_user is not None
+		assert updated_user.email == "newunique@example.com"
+		assert updated_user.id == user.id
+
 
 @pytest.mark.unit
 class TestUserRepositoryDelete:

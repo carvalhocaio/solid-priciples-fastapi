@@ -198,6 +198,32 @@ class TestUserServiceUpdate:
 		# Update should not be called if user doesn't exist
 		mock_repository.update.assert_not_called()
 
+	async def test_update_user_not_found_after_check(self):
+		"""
+		GIVEN a user that exists during check but not during update
+		WHEN updating user
+		THEN UserNotFoundError is raised
+		"""
+		# Arrange
+		mock_repository = AsyncMock()
+		user_id = uuid4()
+		existing_user = create_user(id=user_id)
+
+		mock_repository.get_by_id.return_value = existing_user
+		mock_repository.update.return_value = None  # Update returns None
+
+		service = UserService(mock_repository)
+
+		from app.models.user import UserUpdate
+
+		update_data = UserUpdate(name="New Name")
+
+		# Act & Assert
+		with pytest.raises(UserNotFoundError):
+			await service.update(user_id, update_data)
+
+		mock_repository.update.assert_called_once_with(user_id, update_data)
+
 
 @pytest.mark.unit
 class TestUserServiceDelete:
@@ -246,3 +272,25 @@ class TestUserServiceDelete:
 
 		# Delete should not be called if user doesn't exist
 		mock_repository.delete.assert_not_called()
+
+	async def test_delete_user_not_found_after_check(self):
+		"""
+		GIVEN a user that exists during check but not during delete
+		WHEN deleting user
+		THEN UserNotFoundError is raised
+		"""
+		# Arrange
+		mock_repository = AsyncMock()
+		user_id = uuid4()
+		existing_user = create_user(id=user_id)
+
+		mock_repository.get_by_id.return_value = existing_user
+		mock_repository.delete.return_value = False  # Delete returns False
+
+		service = UserService(mock_repository)
+
+		# Act & Assert
+		with pytest.raises(UserNotFoundError):
+			await service.delete(user_id)
+
+		mock_repository.delete.assert_called_once_with(user_id)
