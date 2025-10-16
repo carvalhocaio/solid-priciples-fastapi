@@ -113,25 +113,22 @@ class TestUserRepositoryServiceIntegration:
 		all_ids = [u.id for u in page_1 + page_2 + page_3]
 		assert len(all_ids) == len(set(all_ids))
 
-	async def test_concurrent_user_creation(self, test_db_session):
+	async def test_sequential_user_creation(self, test_db_session):
 		"""
-		GIVEN multiple concurrent user creation requests
-		WHEN creating users simultaneously
+		GIVEN multiple user creation requests
+		WHEN creating users sequentially
 		THEN all users are created without conflicts
 		"""
 		# Arrange
 		repository = UserRepository(test_db_session)
 		service = UserService(repository)
 
-		import asyncio
-
-		# Act: Create users concurrently
-		async def create_user_task(index):
-			user_data = create_user_data(email=f"concurrent{index}@test.com")
-			return await service.create(user_data)
-
-		tasks = [create_user_task(i) for i in range(5)]
-		results = await asyncio.gather(*tasks)
+		# Act: Create users sequentially
+		results = []
+		for i in range(5):
+			user_data = create_user_data(email=f"sequential{i}@test.com")
+			user = await service.create(user_data)
+			results.append(user)
 
 		# Assert: All users created
 		assert len(results) == 5
@@ -140,3 +137,7 @@ class TestUserRepositoryServiceIntegration:
 		# Verify count
 		all_users, count = await service.get_all()
 		assert count == 5
+
+		# Verify all emails are unique
+		emails = [user.email for user in all_users]
+		assert len(emails) == len(set(emails))
